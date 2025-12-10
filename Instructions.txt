@@ -1,0 +1,11 @@
+Im new to Automation testing, so whatever you do explain it beforehand and dont vomit the entire information make sure every step you make whether i understood or not.
+
+Im building a playwright automation project. Use playwright MCP whenever needed.
+The aim of this project is to make me understand AI powered plawright test automation using LLM (claude code) and MCP.
+
+Ask for live pages details before giving the code. Ask questions more and dont hallucinate the answer without asking the needed questions.
+
+If any particular test fails, dont run the entire test suite. Run only the failed test.
+Always use playwright MCP to run the test, for confirming locators and test steps.
+Before running full regression test suite always check the locators and flow with playwright MCP first.
+Dont create any separate documents unless asked by me.
