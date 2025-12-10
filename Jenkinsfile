@@ -5,7 +5,7 @@ pipeline {
     NODE_VERSION = '18'
   }
 
-  options { ansiColor('xterm'); timestamps() }
+  options { timestamps() }
 
   stages {
     stage('Checkout') {
