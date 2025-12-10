@@ -25,17 +25,26 @@ pipeline {
     }
 
     stage('Restore storageState') {
+  steps {
+    withCredentials([string(credentialsId: 'STORAGE_STATE_BASE64', variable: 'STORAGE_STATE_BASE64')]) {
+      // Use PowerShell to decode base64 into a UTF-8 file (works reliably with multiline secrets)
+      bat '''
+        if not exist auth mkdir auth
+        powershell -Command ^
+          "$b64 = $env:STORAGE_STATE_BASE64; ^
+           $bytes = [System.Convert]::FromBase64String($b64); ^
+           [System.IO.File]::WriteAllBytes('auth\\\\storageState.json', $bytes); ^
+           if (Test-Path auth\\\\storageState.json) { Write-Host 'storageState written OK'; } else { Write-Host 'storageState write failed'; exit 1 }"
+      '''
+    }
+  }
+}
+    stage('Verify storageState') {
       steps {
-        withCredentials([string(credentialsId: 'STORAGE_STATE_BASE64', variable: 'STORAGE_STATE_BASE64')]) {
-          bat '''
-            if not exist auth mkdir auth
-            echo %STORAGE_STATE_BASE64% > auth\\storage64.txt
-            certutil -decode auth\\storage64.txt auth\\storageState.json
-            dir auth
-          '''
-        }
+        bat 'if exist auth\\storageState.json (for %I in (auth\\storageState.json) do @echo size=%~zI) else (echo storageState missing & exit 1)'
       }
     }
+
 
     stage('Run Playwright tests') {
       steps {
