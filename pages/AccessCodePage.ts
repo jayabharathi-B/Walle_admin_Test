@@ -85,20 +85,29 @@ export class AccessCodePage {
         await deleteBtn.click();
         console.log('Delete button clicked, waiting for deletion to complete...');
 
+        // Wait for network to complete the deletion API call
+        await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+            console.log('Network idle timeout, proceeding anyway...');
+        });
+
         // Wait for confirmation to disappear
         await confirmationText.waitFor({ state: 'hidden', timeout: 5000 });
         console.log('Confirmation closed');
 
-        // Wait for success toast
+        // Wait for success toast with increased timeout
         try {
-            await expect(this.page.getByText(/deleted successfully/i)).toBeVisible({ timeout: 5000 });
+            await expect(this.page.getByText(/deleted successfully/i)).toBeVisible({ timeout: 10000 });
             console.log('✓ Deletion toast confirmed');
         } catch (e) {
             console.log('Toast not detected but proceeding...');
         }
 
-        // Verify row is gone
-        await expect(row).not.toBeVisible({ timeout: 5000 });
+        // Wait for table to refresh after deletion
+        await this.page.waitForTimeout(1000);
+
+        // Re-query the row to handle table re-renders (don't use cached locator)
+        const updatedRow = this.page.getByRole('row').filter({ has: this.page.getByText(code, { exact: true }) });
+        await expect(updatedRow).not.toBeVisible({ timeout: 10000 });
         console.log(`✓ Confirmed ${code} removed from table`);
 
         // Add delay before next action to ensure state is stable

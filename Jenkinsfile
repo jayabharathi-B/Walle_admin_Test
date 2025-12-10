@@ -5,38 +5,33 @@ pipeline {
     NODE_VERSION = '18'
   }
 
-  options { timestamps() }
+  options {
+    timestamps()
+  }
 
   stages {
-    stage('Checkout') {
-      steps { checkout scm }
-    }
 
-    stage('Setup Node') {
+    stage('Checkout') {
       steps {
-        sh '''
-          # ensure node is available on agent; if not, install or use node tool
-          # on many Jenkins agents Node is preinstalled. Adjust as needed.
-          node -v || (curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs)
-        '''
+        checkout scm
       }
     }
 
     stage('Install dependencies') {
       steps {
-        sh 'npm ci'
-        sh 'npm run install:playwright' // defined in package.json
+        bat 'npm install'
+        bat 'npx playwright install --with-deps'
       }
     }
 
     stage('Restore storageState') {
       steps {
-        // Use Jenkins credentials to decode and write storageState.json
         withCredentials([string(credentialsId: 'STORAGE_STATE_BASE64', variable: 'STORAGE_STATE_BASE64')]) {
-          sh '''
-            mkdir -p auth
-            echo "$STORAGE_STATE_BASE64" | base64 --decode > auth/storageState.json
-            ls -l auth
+          bat '''
+            if not exist auth mkdir auth
+            echo %STORAGE_STATE_BASE64% > auth\\storage64.txt
+            certutil -decode auth\\storage64.txt auth\\storageState.json
+            dir auth
           '''
         }
       }
@@ -44,8 +39,7 @@ pipeline {
 
     stage('Run Playwright tests') {
       steps {
-        // Set CI env var so tests know they're running in CI if needed
-        sh 'CI=true npx playwright test --reporter=html --output=test-results || true'
+        bat 'npx playwright test --reporter=html'
       }
     }
 
@@ -53,14 +47,13 @@ pipeline {
       steps {
         archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
         archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
-        archiveArtifacts artifacts: 'tmp/**', allowEmptyArchive: true
       }
     }
   }
 
   post {
     always {
-      echo 'Pipeline finished — check artifacts'
+      echo 'Pipeline finished'
       cleanWs()
     }
   }

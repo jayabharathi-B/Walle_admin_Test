@@ -1,22 +1,18 @@
 import { defineConfig } from '@playwright/test';
 import dotenv from 'dotenv';
+dotenv.config(); // loads local .env files if present
 
-// Load environment variables from .env file
-dotenv.config();
+const baseUrl = process.env.BASE_URL || 'https://admin.walle.xyz';
 
 export default defineConfig({
   testDir: './tests',
   timeout: 30_000,
   use: {
     headless: true,
-    baseURL: process.env.BASE_URL ,
-    screenshot: 'only-on-failure',
-    trace: 'retain-on-failure',
+    baseURL: baseUrl,
+    // don't set storageState here globally if you want per-project control
   },
   projects: [
-    {
-      name: 'chromium',
-      use: { browserName: 'chromium', storageState: 'auth/storageState.json' }, // uses saved signed-in state
-    },
+    { name: 'chromium', use: { browserName: 'chromium', storageState: 'auth/storageState.json' } }
   ],
 });

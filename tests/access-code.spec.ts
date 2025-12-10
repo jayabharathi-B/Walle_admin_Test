@@ -6,7 +6,7 @@ import path from 'path';
 test.describe('Access Code Management', () => {
     test.use({ storageState: 'auth/storageState.json' });
 
-    const generatedCodesPath = path.join(__dirname, 'fixtures/generatedCodes.json');
+    const generatedCodesPath = path.join(__dirname, '../fixtures/generatedCodes.json');
 
     test('Test 1: Generate and verify random access code', async ({ page }) => {
         const accessPage = new AccessCodePage(page);
@@ -27,7 +27,7 @@ test.describe('Access Code Management', () => {
         const accessPage = new AccessCodePage(page);
 
         // Counter logic
-        const counterPath = path.join(__dirname, 'fixtures/counter.json');
+        const counterPath = path.join(__dirname, '../fixtures/counter.json');
         const counter = JSON.parse(fs.readFileSync(counterPath, 'utf-8'));
         const nextCount = counter.lastCount + 1;
         const code = `TEST${String(nextCount).padStart(4, '0')}`;
